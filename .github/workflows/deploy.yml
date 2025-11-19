@@ -49,9 +49,10 @@ jobs:
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_DIR: /home/${{ secrets.SERVER_USER }}/server/laptop-monitor-discord
         run: |
           ssh "$SERVER_USER@$SERVER_HOST" << 'EOF'
-            cd ~/laptop-monitor-discord
+            cd $DEPLOY_DIR
             npm ci
             npm run build
             docker compose up -d --build
