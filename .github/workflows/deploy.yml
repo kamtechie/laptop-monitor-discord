@@ -50,14 +50,18 @@ jobs:
           SERVER_USER: ${{ secrets.SERVER_USER }}
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
           DEPLOY_DIR: /home/${{ secrets.SERVER_USER }}/server/laptop-monitor-discord
-        run: |
-          ssh "$SERVER_USER@$SERVER_HOST" << 'EOF'
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          envs: DEPLOY_DIR
+          script: |
             cd $DEPLOY_DIR
             npm ci
             npm run build
             docker compose up -d --build
             docker compose logs bot
-          EOF
 
       - name: Verify deployment
         env:
@@ -65,4 +69,4 @@ jobs:
           SERVER_USER: ${{ secrets.SERVER_USER }}
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
         run: |
-          ssh "$SERVER_USER@$SERVER_HOST" "docker-compose ps"
+          ssh "$SERVER_USER@$SERVER_HOST" "docker compose ps"
