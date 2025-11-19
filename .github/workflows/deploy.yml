@@ -21,28 +21,31 @@ jobs:
           tags: tag:server-deploy
 
       - name: Deploy files to home server
-        env:
-          SERVER_HOST: ${{ secrets.SERVER_HOST }}
-          SERVER_USER: ${{ secrets.SERVER_USER }}
-          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
-          DEPLOY_DIR: /home/${{ secrets.SERVER_USER }}/server/laptop-monitor-discord
-        run: |
-              mkdir -p ~/.ssh
-              echo "$DEPLOY_KEY" > ~/.ssh/id_rsa
-              chmod 600 ~/.ssh/id_rsa
-              ssh-keyscan -H "$SERVER_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+        uses: burnett01/rsync-deployments@7.1.0
+        with:
+          switches: -avzr --delete --exclude=.git --exclude=node_modules --exclude=.env
+          path: src/
+          remote_path: /home/${{ secrets.SERVER_USER }}/server/laptop-monitor-discordz
+          remote_host: ${{ secrets.SERVER_HOST }}
+          remote_user: ${{ secrets.REMOTE_USER }}
+          remote_key: ${{ secrets.DEPLOY_KEY }}
+        # run: |
+        #       mkdir -p ~/.ssh
+        #       echo "$DEPLOY_KEY" > ~/.ssh/id_rsa
+        #       chmod 600 ~/.ssh/id_rsa
+        #       ssh-keyscan -H "$SERVER_HOST" >> ~/.ssh/known_hosts 2>/dev/null
 
-              # Ensure deploy directory exists on server
-              ssh "$SERVER_USER@$SERVER_HOST" "mkdir -p $DEPLOY_DIR"
+        #       # Ensure deploy directory exists on server
+        #       ssh "$SERVER_USER@$SERVER_HOST" "mkdir -p $DEPLOY_DIR"
 
-              # Create tarball excluding .git in /tmp
-              tar --exclude=.git -czf /tmp/deploy.tar.gz .
+        #       # Create tarball excluding .git in /tmp
+        #       tar --exclude=.git -czf /tmp/deploy.tar.gz .
 
-              # Copy tarball via SCP
-              scp /tmp/deploy.tar.gz "$SERVER_USER@$SERVER_HOST:$DEPLOY_DIR/"
+        #       # Copy tarball via SCP
+        #       scp /tmp/deploy.tar.gz "$SERVER_USER@$SERVER_HOST:$DEPLOY_DIR/"
 
-              # Extract tarball on server
-              ssh "$SERVER_USER@$SERVER_HOST" "cd $DEPLOY_DIR && tar -xzf deploy.tar.gz && rm deploy.tar.gz"
+        #       # Extract tarball on server
+        #       ssh "$SERVER_USER@$SERVER_HOST" "cd $DEPLOY_DIR && tar -xzf deploy.tar.gz && rm deploy.tar.gz"
 
       - name: Build and deploy on server
         env:
