@@ -33,7 +33,7 @@ jobs:
           ssh-keyscan -H "$SERVER_HOST" >> ~/.ssh/known_hosts 2>/dev/null
 
           # Ensure deploy directory exists on server
-          ssh "$SERVER_USER@$SERVER_HOST" "mkdir -p laptop-monitor-discord"
+          ssh "$SERVER_USER@$SERVER_HOST" "mkdir -p $DEPLOY_DIR"
 
           # Copy files via SCP (exclude node_modules, dist, .git)
           scp -r \
@@ -42,7 +42,7 @@ jobs:
             --exclude='dist' \
             --exclude='.git' \
             --exclude='.env' \
-            . "$SERVER_USER@$SERVER_HOST:laptop-monitor-discord/"
+            . "$SERVER_USER@$SERVER_HOST:$DEPLOY_DIR/"
 
       - name: Build and deploy on server
         env:
