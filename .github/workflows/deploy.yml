@@ -25,7 +25,7 @@ jobs:
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
-          DEPLOY_DIR: ~/server/laptop-monitor-discord
+          DEPLOY_DIR: /home/${{ secrets.SERVER_USER }}/server/laptop-monitor-discord
         run: |
               mkdir -p ~/.ssh
               echo "$DEPLOY_KEY" > ~/.ssh/id_rsa
@@ -35,11 +35,11 @@ jobs:
               # Ensure deploy directory exists on server
               ssh "$SERVER_USER@$SERVER_HOST" "mkdir -p $DEPLOY_DIR"
 
-              # Create tarball excluding .git
-              tar --exclude=.git -czf deploy.tar.gz .
+              # Create tarball excluding .git in /tmp
+              tar --exclude=.git -czf /tmp/deploy.tar.gz .
 
               # Copy tarball via SCP
-              scp deploy.tar.gz "$SERVER_USER@$SERVER_HOST:$DEPLOY_DIR/"
+              scp /tmp/deploy.tar.gz "$SERVER_USER@$SERVER_HOST:$DEPLOY_DIR/"
 
               # Extract tarball on server
               ssh "$SERVER_USER@$SERVER_HOST" "cd $DEPLOY_DIR && tar -xzf deploy.tar.gz && rm deploy.tar.gz"
