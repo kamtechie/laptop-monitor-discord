@@ -20,14 +20,14 @@ jobs:
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:server-deploy
 
-      - name: Deploy files to home server
+      - name: Copy files to server
         uses: burnett01/rsync-deployments@7.1.0
         with:
           switches: -avzr --delete --exclude=.git --exclude=node_modules --exclude=.env
           path: src/
           remote_path: /home/${{ secrets.SERVER_USER }}/server/laptop-monitor-discordz
           remote_host: ${{ secrets.SERVER_HOST }}
-          remote_user: ${{ secrets.REMOTE_USER }}
+          remote_user: ${{ secrets.SERVER_USER }}
           remote_key: ${{ secrets.DEPLOY_KEY }}
         # run: |
         #       mkdir -p ~/.ssh
