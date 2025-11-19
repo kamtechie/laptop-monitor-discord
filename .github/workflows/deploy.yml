@@ -20,21 +20,38 @@ jobs:
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:server-deploy
 
-      - name: Deploy to home server
+      - name: Deploy files to home server
         env:
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_DIR: ~/laptop-monitor-discord
         run: |
           mkdir -p ~/.ssh
           echo "$DEPLOY_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H "$SERVER_HOST" >> ~/.ssh/known_hosts 2>/dev/null
 
-          # Deploy via SSH
+          # Ensure deploy directory exists on server
+          ssh "$SERVER_USER@$SERVER_HOST" "mkdir -p laptop-monitor-discord"
+
+          # Copy files via SCP (exclude node_modules, dist, .git)
+          scp -r \
+            -o "StrictHostKeyChecking=no" \
+            --exclude='node_modules' \
+            --exclude='dist' \
+            --exclude='.git' \
+            --exclude='.env' \
+            . "$SERVER_USER@$SERVER_HOST:laptop-monitor-discord/"
+
+      - name: Build and deploy on server
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        run: |
           ssh "$SERVER_USER@$SERVER_HOST" << 'EOF'
             cd ~/laptop-monitor-discord
-            git pull origin main
             npm ci
             npm run build
             docker-compose up -d --build
