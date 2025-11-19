@@ -36,13 +36,7 @@ jobs:
           ssh "$SERVER_USER@$SERVER_HOST" "mkdir -p $DEPLOY_DIR"
 
           # Copy files via SCP (exclude node_modules, dist, .git)
-          scp -r \
-            -o "StrictHostKeyChecking=no" \
-            --exclude='node_modules' \
-            --exclude='dist' \
-            --exclude='.git' \
-            --exclude='.env' \
-            . "$SERVER_USER@$SERVER_HOST:$DEPLOY_DIR/"
+          scp -r . "$SERVER_USER@$SERVER_HOST:$DEPLOY_DIR/"
 
       - name: Build and deploy on server
         env:
