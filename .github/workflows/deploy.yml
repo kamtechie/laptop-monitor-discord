@@ -1,0 +1,49 @@
+name: Deploy to Home Server
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Tailscale
+        uses: tailscale/github-action@v2
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+
+      - name: Deploy to home server
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$DEPLOY_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "$SERVER_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
+          # Deploy via SSH
+          ssh "$SERVER_USER@$SERVER_HOST" << 'EOF'
+            cd ~/laptop-monitor-discord
+            git pull origin main
+            npm ci
+            npm run build
+            docker-compose up -d --build
+            docker-compose logs bot
+          EOF
+
+      - name: Verify deployment
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        run: |
+          ssh "$SERVER_USER@$SERVER_HOST" "docker-compose ps"

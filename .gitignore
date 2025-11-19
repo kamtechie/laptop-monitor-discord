@@ -37,3 +37,7 @@ yarn-error.log*
 # Temporary files
 tmp/
 temp/
+
+# Deployment keys
+deploy_key
+deploy_key.pub
