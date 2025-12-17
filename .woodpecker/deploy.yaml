@@ -4,7 +4,7 @@ when:
 
 steps:
   - name: deploy
-    image: docker:27
+    image: docker:27-cli
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     commands:
